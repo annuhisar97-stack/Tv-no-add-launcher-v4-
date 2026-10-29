@@ -65,3 +65,4 @@ jobs:
         with:
           name: NoAds-TV-Launcher-APK
           path: "app/build/outputs/apk/debug/*.apk"
+          
