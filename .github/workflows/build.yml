@@ -23,9 +23,8 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Arrange Android Project Folders
+      - name: Arrange and Fix Project Configuration
         run: |
-          echo "Setting up proper Android project structure..."
           mkdir -p app/src/main/java
           mkdir -p app/src/main/res/values
 
@@ -55,14 +54,31 @@ jobs:
             mv styles.xml app/src/main/res/values/styles.xml
           fi
 
-          echo "Folder structure organized successfully!"
+          # Java aur Kotlin dono ko Version 17 par match karein
+          sed -i 's/VERSION_1_8/VERSION_17/g' app/build.gradle.kts || true
+          sed -i 's/"1.8"/"17"/g' app/build.gradle.kts || true
+          sed -i "s/'1.8'/'17'/g" app/build.gradle.kts || true
+
+          cat << 'EOF' >> app/build.gradle.kts
+
+          android {
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+          }
+          EOF
+
+          # Global gradle properties setting
+          mkdir -p ~/.gradle
+          echo "kotlin.jvm.target.validation.mode=ignore" >> ~/.gradle/gradle.properties
+          echo "kotlin.jvm.target.validation.mode=ignore" >> gradle.properties
 
       - name: Build Debug APK
-        run: gradle assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace -Pkotlin.jvm.target.validation.mode=ignore
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: NoAds-TV-Launcher-APK
           path: "app/build/outputs/apk/debug/*.apk"
-          
